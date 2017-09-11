@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Astraea</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!-- Common -->
+    <string name="error_network">Network Error</string>
+    <string name="error_api">Internal Error</string>
+    <string name="error_token">Token is invalid</string>
+
+
+    <!-- Logging in -->
+    <string name="username">Phone Number</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign in</string>
+    <string name="error_invalid_credentials">Invalid phone number or password</string>
+    <string name="number_hint">Number must start with 7</string>
+
+</resources>
