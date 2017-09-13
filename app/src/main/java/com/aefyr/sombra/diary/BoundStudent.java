@@ -10,26 +10,26 @@ public class BoundStudent {
     private String schoolName;
     private String className;
 
-    BoundStudent(String id, String name, String schoolName, String className){
+    BoundStudent(String id, String name, String schoolName, String className) {
         this.id = id;
         this.name = name;
         this.schoolName = schoolName;
         this.className = className;
     }
 
-    public String id(){
+    public String id() {
         return id;
     }
 
-    public String name(){
+    public String name() {
         return name;
     }
 
-    public String schoolName(){
+    public String schoolName() {
         return schoolName;
     }
 
-    public String className(){
+    public String className() {
         return className;
     }
 }

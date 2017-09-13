@@ -8,7 +8,7 @@
 
     <!-- Common -->
     <string name="error_network">Network Error</string>
-    <string name="error_api">Internal Error</string>
+    <string name="error_api" formatted="false">Server error:\n%s</string>
     <string name="error_token">Token is invalid</string>
 
 

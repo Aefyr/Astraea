@@ -6,7 +6,10 @@ package com.aefyr.sombra.common;
 
 public interface BaseCallback<T> {
     void onSuccess(T result);
+
     void onNetworkError();
+
     void onInvalidTokenError();
-    void onApiError();
+
+    void onApiError(ApiError error);
 }

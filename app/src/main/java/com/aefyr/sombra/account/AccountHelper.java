@@ -16,18 +16,18 @@ import com.google.gson.JsonObject;
 
 public class AccountHelper {
     private static final String AUTHORIZATION_URL = Constants.EMP_URL + "/v0.1/auth/virtualLogin?" + Constants.EMP_API_KEY_PARAM;
-    private static final String PROFILE_DATA_URL =  Constants.EMP_URL + "/v0.1/profile/get?" + Constants.EMP_API_KEY_PARAM;
+    private static final String PROFILE_DATA_URL = Constants.EMP_URL + "/v0.1/profile/get?" + Constants.EMP_API_KEY_PARAM;
     private SombraCore core;
 
-    public AccountHelper(SombraCore sombraCore){
+    public AccountHelper(SombraCore sombraCore) {
         core = sombraCore;
     }
 
-    public interface AuthorizationListener extends BaseCallback<String>{
+    public interface AuthorizationListener extends BaseCallback<String> {
         void onInvalidCredentials();
     }
 
-    public Cancelable authorize(String username, String password, final AuthorizationListener listener){
+    public Cancelable authorize(String username, String password, final AuthorizationListener listener) {
         JsonObject credentials = new JsonObject();
         credentials.addProperty("login", username);
         credentials.addProperty("password", password);
@@ -38,7 +38,7 @@ public class AccountHelper {
         GsonRequest request = new GsonRequest(AUTHORIZATION_URL, data, new Response.Listener<JsonObject>() {
             @Override
             public void onResponse(JsonObject response) {
-                if(response.get("errorCode").getAsInt()!=0){
+                if (response.get("errorCode").getAsInt() != 0) {
                     listener.onInvalidCredentials();
                     return;
                 }
@@ -55,26 +55,27 @@ public class AccountHelper {
         return new Cancelable(request);
     }
 
-    public interface ProfileListener extends BaseCallback<AccountData>{}
+    public interface ProfileListener extends BaseCallback<AccountData> {
+    }
 
-    public Cancelable getProfileInfo(final ProfileListener listener){
+    public Cancelable getProfileInfo(final ProfileListener listener) {
 
         GsonRequest request = new GsonRequest(PROFILE_DATA_URL, core.getBaseData(), new Response.Listener<JsonObject>() {
             @Override
             public void onResponse(JsonObject response) {
-                if(!JsonHelper.checkResponse(response, listener))
+                if (!JsonHelper.checkResponse(response, listener))
                     return;
 
                 JsonObject result = response.get("result").getAsJsonObject();
 
                 AccountData accountData = new AccountData();
 
-                String firstName = result.get("firstname")==null?Constants.UNKNOWN:result.get("firstname").getAsString();
-                String middleName = result.get("middlename")==null?Constants.UNKNOWN:result.get("middlename").getAsString();
-                String lastName = result.get("lastname")==null?Constants.UNKNOWN:result.get("lastname").getAsString();
+                String firstName = result.get("firstname") == null ? Constants.UNKNOWN : result.get("firstname").getAsString();
+                String middleName = result.get("middlename") == null ? Constants.UNKNOWN : result.get("middlename").getAsString();
+                String lastName = result.get("lastname") == null ? Constants.UNKNOWN : result.get("lastname").getAsString();
                 accountData.setName(firstName, middleName, lastName);
 
-                accountData.setMail(result.get("email")==null?Constants.UNKNOWN:result.get("email").getAsString());
+                accountData.setMail(result.get("email") == null ? Constants.UNKNOWN : result.get("email").getAsString());
 
                 listener.onSuccess(accountData);
             }

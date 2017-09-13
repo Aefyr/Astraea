@@ -16,51 +16,51 @@ public class SombraCore {
     private RequestQueue queue;
     private String token;
 
-    private SombraCore(Context c){
+    private SombraCore(Context c) {
         initialize(c);
     }
 
-    private SombraCore(Context c, String token){
+    private SombraCore(Context c, String token) {
         this.token = token;
         initialize(c);
     }
 
-    private void initialize(Context c){
+    private void initialize(Context c) {
         queue = Volley.newRequestQueue(c);
         instance = this;
     }
 
-    public static SombraCore getInstance(Context c){
-        return instance == null?new SombraCore(c):instance;
+    public static SombraCore getInstance(Context c) {
+        return instance == null ? new SombraCore(c) : instance;
     }
 
-    public static SombraCore getInstance(Context c, String token){
-        if(instance!=null){
+    public static SombraCore getInstance(Context c, String token) {
+        if (instance != null) {
             instance.token = token;
             return instance;
         }
         return new SombraCore(c, token);
     }
 
-    public void setToken(String token){
+    public void setToken(String token) {
         this.token = token;
     }
 
-    public RequestQueue getQueue(){
+    public RequestQueue getQueue() {
         return queue;
     }
 
-    public String getToken(){
+    public String getToken() {
         return token;
     }
 
-    public void addTokenToData(JsonObject data){
+    public void addTokenToData(JsonObject data) {
         JsonObject auth = new JsonObject();
         auth.addProperty("session_id", token);
         data.add("auth", auth);
     }
 
-    public JsonObject getBaseData(){
+    public JsonObject getBaseData() {
         JsonObject data = new JsonObject();
         addTokenToData(data);
         return data;

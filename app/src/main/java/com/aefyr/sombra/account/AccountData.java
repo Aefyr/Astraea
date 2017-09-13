@@ -15,14 +15,14 @@ public class AccountData {
 
     private String email;
 
-    void setName(String firstName, String middleName, String lastName){
+    void setName(String firstName, String middleName, String lastName) {
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
     }
 
-    public String getName(int namePart){
-        switch (namePart){
+    public String getName(int namePart) {
+        switch (namePart) {
             case FIRST_NAME:
                 return firstName;
             case MIDDLE_NAME:
@@ -34,11 +34,11 @@ public class AccountData {
         }
     }
 
-    void setMail(String email){
+    void setMail(String email) {
         this.email = email;
     }
 
-    public String email(){
+    public String email() {
         return email;
     }
 }

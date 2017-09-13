@@ -1,25 +1,27 @@
 package com.aefyr.astraea;
 
-import android.animation.Animator;
-import android.animation.ObjectAnimator;
 import android.graphics.Color;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
+import com.aefyr.astraea.custom.AnimatedTextView;
 import com.aefyr.astraea.custom.ProgressIndicator;
 import com.aefyr.astraea.helpers.AccountManager;
 import com.aefyr.astraea.utility.ViewUtils;
 import com.aefyr.sombra.account.AccountData;
 import com.aefyr.sombra.account.AccountHelper;
+import com.aefyr.sombra.common.ApiError;
 import com.aefyr.sombra.common.SombraCore;
 import com.aefyr.sombra.diary.BoundStudent;
 import com.aefyr.sombra.diary.StudentsHelper;
@@ -34,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText password;
     private Button signIn;
     private TextView stat;
-    private TextView message;
+    private AnimatedTextView message;
     private ProgressIndicator progressIndicator;
 
     @Override
@@ -46,15 +48,22 @@ public class LoginActivity extends AppCompatActivity {
         password = (EditText) findViewById(R.id.password);
         signIn = (Button) findViewById(R.id.signIn);
         stat = (TextView) findViewById(R.id.stat);
-        message = (TextView) findViewById(R.id.message);
-        progressIndicator = (ProgressIndicator)findViewById(R.id.indicator);
+        message = (AnimatedTextView) findViewById(R.id.message);
+        progressIndicator = (ProgressIndicator) findViewById(R.id.indicator);
 
-        progressIndicator.setColorScheme(Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN);
+        progressIndicator.setColorScheme(Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA);
+
+        ((ToggleButton) findViewById(R.id.toggleButton)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                showProgress(isChecked);
+            }
+        });
 
         username.setFilters(new InputFilter[]{new InputFilter() {
             @Override
             public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-                return Pattern.matches("[^0-9]", source)?"":null;
+                return Pattern.matches("[^0-9]", source) ? "" : null;
             }
         }});
 
@@ -79,7 +88,6 @@ public class LoginActivity extends AppCompatActivity {
         password.addTextChangedListener(watcher);
 
 
-
         signIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -98,7 +106,7 @@ public class LoginActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(AccountData result) {
                                 accountManager.setAccountData(result);
-                                stat.setText("name: "+accountManager.getNormalName()+"\nmail: "+accountManager.getEmail());
+                                stat.setText("name: " + accountManager.getNormalName() + "\nmail: " + accountManager.getEmail());
                                 setMessage("Fetching Data (2/2)");
 
                                 new StudentsHelper(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getBoundStudents(new StudentsHelper.StudentsGetListener() {
@@ -107,7 +115,7 @@ public class LoginActivity extends AppCompatActivity {
                                         showProgress(false);
                                         setMessage("Done!");
                                         StringBuilder names = new StringBuilder();
-                                        for(BoundStudent student: result)
+                                        for (BoundStudent student : result)
                                             names.append(student.name()).append("\n");
                                         stat.setText(names);
                                     }
@@ -125,8 +133,8 @@ public class LoginActivity extends AppCompatActivity {
                                     }
 
                                     @Override
-                                    public void onApiError() {
-                                        showError(getString(R.string.error_api));
+                                    public void onApiError(ApiError error) {
+                                        showError(String.format(getString(R.string.error_api), error.getMessage()));
                                         showProgress(false);
                                     }
                                 });
@@ -145,8 +153,8 @@ public class LoginActivity extends AppCompatActivity {
                             }
 
                             @Override
-                            public void onApiError() {
-                                showError(getString(R.string.error_api));
+                            public void onApiError(ApiError error) {
+                                showError(String.format(getString(R.string.error_api), error.getMessage()));
                                 showProgress(false);
                             }
                         });
@@ -170,8 +178,8 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onApiError() {
-                        showError(getString(R.string.error_api));
+                    public void onApiError(ApiError error) {
+                        showError(String.format(getString(R.string.error_api), error.getMessage()));
                         showProgress(false);
                     }
                 });
@@ -179,7 +187,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    class AuthSimulator extends AsyncTask<Void, Integer, Void>{
+    class AuthSimulator extends AsyncTask<Void, Integer, Void> {
 
 
         @Override
@@ -191,7 +199,7 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            for(int i = 0; i<=10; i++){
+            for (int i = 0; i <= 10; i++) {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -216,62 +224,34 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void auth(){
+    private void auth() {
 
     }
 
-    private void authCompleted(boolean successful){
+    private void authCompleted(boolean successful) {
 
     }
 
-    private void showProgress(boolean show){
+    private void showProgress(boolean show) {
         username.setEnabled(!show);
         password.setEnabled(!show);
         signIn.setEnabled(!show);
-        if(show){
-            ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(progressIndicator, View.SCALE_Y, 0,1);
-            alphaAnimator.setDuration(100);
-            progressIndicator.setAnimating(true);
-            alphaAnimator.start();
-        }else {
-            ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(progressIndicator, View.SCALE_Y, 1,0);
-            alphaAnimator.setDuration(100);
-            alphaAnimator.addListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    progressIndicator.setAnimating(false);
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-
-                }
-            });
-            alphaAnimator.start();
-        }
+        if (show)
+            progressIndicator.show();
+        else
+            progressIndicator.hide();
     }
 
-    private void showError(String error){
+    private void showError(String error) {
         setMessage(error);
         ViewUtils.highLightTV(getResources(), message);
     }
 
-    private void clearError(){
+    private void clearError() {
         setMessage(getString(R.string.number_hint));
     }
 
-    private void setMessage(String messageText){
-        if(!message.getText().equals(messageText))
-            ViewUtils.animatedTextSwap(message, messageText);
+    private void setMessage(String messageText) {
+        message.setText(messageText, true);
     }
 }

@@ -14,32 +14,32 @@ public class AccountManager {
     private SharedPreferences accountPrefs;
     private static final String ACCOUNT_PREFERENCES_NAME = "account";
 
-    private AccountManager(Context c){
+    private AccountManager(Context c) {
         accountPrefs = c.getSharedPreferences(ACCOUNT_PREFERENCES_NAME, 0);
         instance = this;
     }
 
-    public static AccountManager getInstance(Context c){
-        return instance == null?new AccountManager(c):instance;
+    public static AccountManager getInstance(Context c) {
+        return instance == null ? new AccountManager(c) : instance;
     }
 
-    public boolean isLoggedIn(){
+    public boolean isLoggedIn() {
         return accountPrefs.getBoolean(Key.IS_LOGGED_IN, false);
     }
 
-    public void setLoggedIn(boolean loggedIn){
+    public void setLoggedIn(boolean loggedIn) {
         accountPrefs.edit().putBoolean(Key.IS_LOGGED_IN, loggedIn).apply();
     }
 
-    public void setToken(String token){
+    public void setToken(String token) {
         accountPrefs.edit().putString(Key.TOKEN, token).apply();
     }
 
-    public String getToken(){
+    public String getToken() {
         return accountPrefs.getString(Key.TOKEN, "0");
     }
 
-    public void setAccountData(AccountData accountData){
+    public void setAccountData(AccountData accountData) {
         SharedPreferences.Editor editor = accountPrefs.edit();
 
         editor.putString(Key.FIRST_NAME, accountData.getName(AccountData.FIRST_NAME));
@@ -51,15 +51,15 @@ public class AccountManager {
         editor.apply();
     }
 
-    public String getEmail(){
+    public String getEmail() {
         return accountPrefs.getString(Key.EMAIL, "astraea@example.com");
     }
 
-    public String getNormalName(){
+    public String getNormalName() {
         return accountPrefs.getString(Key.LAST_NAME, "Barrera") + accountPrefs.getString(Key.FIRST_NAME, "Tony");
     }
 
-    private class Key{
+    private class Key {
         private static final String IS_LOGGED_IN = "logged_in";
         private static final String TOKEN = "token";
         private static final String FIRST_NAME = "first_name";

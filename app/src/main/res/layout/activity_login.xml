@@ -65,15 +65,21 @@
         android:text="TextView"
         android:layout_above="@+id/message" />
 
-    <TextView
+    <com.aefyr.astraea.custom.AnimatedTextView
         android:id="@+id/message"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_above="@+id/username"
-        android:layout_alignEnd="@+id/username"
-        android:layout_alignStart="@+id/username"
         android:gravity="center"
         android:text="@string/number_hint"
         android:textColor="@color/colorText"
         android:textSize="16sp" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="ToggleButton" />
 </RelativeLayout>

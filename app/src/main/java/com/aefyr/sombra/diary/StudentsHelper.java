@@ -21,27 +21,30 @@ public class StudentsHelper {
     private SombraCore core;
     private static final String BOUND_STUDENTS_URL = Constants.EMP_URL + "/v0.3/diary/getChildrenByUser?" + Constants.EMP_API_KEY_PARAM;
 
-    public StudentsHelper(SombraCore core){
+    public StudentsHelper(SombraCore core) {
         this.core = core;
     }
 
-    public interface StudentsGetListener extends BaseCallback<ArrayList<BoundStudent>>{};
+    public interface StudentsGetListener extends BaseCallback<ArrayList<BoundStudent>> {
+    }
 
-    public Cancelable getBoundStudents(final StudentsGetListener listener){
+    ;
+
+    public Cancelable getBoundStudents(final StudentsGetListener listener) {
 
         GsonRequest request = new GsonRequest(BOUND_STUDENTS_URL, core.getBaseData(), new Response.Listener<JsonObject>() {
             @Override
             public void onResponse(JsonObject response) {
-                if(!JsonHelper.checkResponse(response, listener))
+                if (!JsonHelper.checkResponse(response, listener))
                     return;
 
-                if(!response.get("result").isJsonArray()||response.get("result").getAsJsonArray().size()==0){
+                if (!response.get("result").isJsonArray() || response.get("result").getAsJsonArray().size() == 0) {
                     listener.onSuccess(new ArrayList<BoundStudent>(0));
                     return;
                 }
 
                 ArrayList<BoundStudent> students = new ArrayList<>(3);
-                for(JsonElement studentEl: response.get("result").getAsJsonArray()){
+                for (JsonElement studentEl : response.get("result").getAsJsonArray()) {
                     JsonObject student = studentEl.getAsJsonObject();
                     students.add(new BoundStudent(student.get("child_alias").getAsString(), student.get("child_name").getAsString(), student.get("school_name").getAsString(), student.get("unit_name").getAsString()));
                 }

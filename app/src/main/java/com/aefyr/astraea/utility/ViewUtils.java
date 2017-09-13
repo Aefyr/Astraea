@@ -1,11 +1,8 @@
 package com.aefyr.astraea.utility;
 
-import android.animation.Animator;
 import android.animation.ArgbEvaluator;
-import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.res.Resources;
-import android.view.View;
 import android.widget.TextView;
 
 import com.aefyr.astraea.R;
@@ -29,63 +26,5 @@ public class ViewUtils {
             }
         });
         colorAnimator.start();
-    }
-
-    public static void animatedTextSwap(final TextView textView, final String newText){
-        ObjectAnimator animator = ObjectAnimator.ofFloat(textView, View.SCALE_Y, 1,0);
-        animator.setRepeatCount(1);
-        animator.setRepeatMode(ValueAnimator.REVERSE);
-        animator.setDuration(50);
-        animator.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-                textView.setText(newText);
-            }
-        });
-        animator.start();
-    }
-
-    public static void animateViewVisibilityChange(final View view, final boolean visible){
-        ObjectAnimator animator = ObjectAnimator.ofFloat(view, View.ALPHA, visible?0:1,visible?1:0);
-        animator.setDuration(100);
-        animator.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-                if(visible)
-                    view.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                if(!visible)
-                    view.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-        });
-        animator.start();
     }
 }

@@ -1,5 +1,7 @@
 package com.aefyr.astraea.custom;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -19,7 +21,8 @@ import com.aefyr.astraea.utility.MathUtils;
  */
 
 public class ProgressIndicator extends View {
-    private boolean animated;
+    private boolean running;
+    private boolean visible;
     private int width, height;
     private int y, r, xs, xe; //center of circles, radius of circles, left x border, right x border
     private int movePerSecond = 256;
@@ -36,6 +39,8 @@ public class ProgressIndicator extends View {
     private int currentColorIndex = 0;
     private int nextColorIndex = 1;
 
+    private ObjectAnimator visibilityAnimator;
+
     public ProgressIndicator(Context context) {
         super(context);
         initialize();
@@ -43,26 +48,51 @@ public class ProgressIndicator extends View {
 
     public ProgressIndicator(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        if(attrs!=null) {
+        if (attrs != null) {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.ProgressIndicator, 0, 0);
-            try{
+            try {
                 movePerSecond = a.getDimensionPixelSize(R.styleable.ProgressIndicator_movementPerSecond, 256);
                 color = a.getColor(R.styleable.ProgressIndicator_indicatorColor, Color.CYAN);
                 ghostsCount = a.getInt(R.styleable.ProgressIndicator_ghostsCount, 0);
-            }finally {
+            } finally {
                 a.recycle();
             }
         }
         initialize();
     }
 
-    private void initialize(){
+    private void initialize() {
         p = new Paint();
         p.setStyle(Paint.Style.FILL_AND_STROKE);
         p.setColor(color);
         p.setAntiAlias(true);
-        minimalDelta = (int) (1000f/((WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRefreshRate());
-        deltaTime = minimalDelta/1000;
+        minimalDelta = (int) (1000f / ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRefreshRate());
+        deltaTime = minimalDelta / 1000;
+
+        visibilityAnimator = ObjectAnimator.ofFloat(this, View.SCALE_Y, 0, 1);
+        visibilityAnimator.setDuration(100);
+        visibilityAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (!visible)
+                    setAnimating(false);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
     }
 
 
@@ -74,9 +104,9 @@ public class ProgressIndicator extends View {
         calculateValues();
     }
 
-    private void calculateValues(){
-        y = height/2 + getPaddingTop() - getPaddingBottom();
-        r = height/2 - (getPaddingBottom() + getPaddingTop());
+    private void calculateValues() {
+        y = height / 2 + getPaddingTop() - getPaddingBottom();
+        r = height / 2 - (getPaddingBottom() + getPaddingTop());
         xs = r + getPaddingLeft();
         xe = width - r - getPaddingRight();
         currentX = xs;
@@ -88,22 +118,35 @@ public class ProgressIndicator extends View {
         calculateValues();
     }
 
-    public void setAnimating(boolean animating){
-        animated = animating;
+    private void setAnimating(boolean animating) {
+        running = animating;
         currentX = xs;
         goingBack = false;
         invalidate();
     }
 
-    public void setColorScheme(int... colors){
-        if(colors.length<2)
+    public void show() {
+        visible = true;
+        setAnimating(true);
+        visibilityAnimator.setFloatValues(0, 1);
+        visibilityAnimator.start();
+    }
+
+    public void hide() {
+        visible = false;
+        visibilityAnimator.setFloatValues(1, 0);
+        visibilityAnimator.start();
+    }
+
+    public void setColorScheme(int... colors) {
+        if (colors.length < 2)
             throw new IllegalArgumentException("ProgressIndicator's colorScheme must contain at least 2 colors. Use setColor if you want to use just 1 color");
 
         colorScheme = colors;
         colorSchemed = true;
     }
 
-    public void setColor(int color){
+    public void setColor(int color) {
         colorSchemed = false;
         this.color = color;
         p.setColor(color);
@@ -111,41 +154,42 @@ public class ProgressIndicator extends View {
 
     private int currentX = 1;
     private boolean goingBack;
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         long startTime = System.currentTimeMillis();
 
-        if(isInEditMode()){
-            drawIndicator(canvas, width/2, y, r);
+        if (isInEditMode()) {
+            drawIndicator(canvas, width / 2, y, r);
             return;
         }
-        if(animated){
+        if (running) {
             drawIndicator(canvas, currentX, y, r);
-            currentX += (goingBack?-movePerSecond:movePerSecond)*deltaTime;
+            currentX += (goingBack ? -movePerSecond : movePerSecond) * deltaTime;
 
-            if(currentX >= xe)
+            if (currentX >= xe)
                 goingBack = true;
-            else if(currentX <= xs)
+            else if (currentX <= xs)
                 goingBack = false;
 
             invalidate();
         }
 
-        if(colorSchemed)
+        if (colorSchemed)
             calculateColor();
 
         deltaTime = System.currentTimeMillis() - startTime;
-        if(deltaTime<minimalDelta)
+        if (deltaTime < minimalDelta)
             deltaTime = minimalDelta;
         deltaTime /= 1000;
     }
 
 
-    private void drawIndicator(Canvas c, int x, int y, int r){
-        if(ghostsCount > 0) {
-            int distanceTillBorder = MathUtils.vector1Distance(currentX, currentX<ghostsCount*r?xs:xe);
-            int ghostOffset = distanceTillBorder>r*ghostsCount?r:distanceTillBorder/ghostsCount;
+    private void drawIndicator(Canvas c, int x, int y, int r) {
+        if (ghostsCount > 0) {
+            int distanceTillBorder = MathUtils.vector1Distance(currentX, currentX < ghostsCount * r ? xs : xe);
+            int ghostOffset = distanceTillBorder > r * ghostsCount ? r : distanceTillBorder / ghostsCount;
             for (int i = ghostsCount; i > 0; i--) {
                 float t = (float) i / (float) ghostsCount;
                 int ghostX = currentX + (goingBack ? ghostOffset : -ghostOffset) * i;
@@ -159,12 +203,12 @@ public class ProgressIndicator extends View {
 
     }
 
-    private void calculateColor(){
+    private void calculateColor() {
         p.setColor(MathUtils.colorLerp(colorScheme[currentColorIndex], colorScheme[nextColorIndex], colorInterpolationProgress));
-        colorInterpolationProgress += 1*deltaTime;
-        if(colorInterpolationProgress>=1){
-            currentColorIndex = (currentColorIndex+1)%colorScheme.length;
-            nextColorIndex = (currentColorIndex+1)%colorScheme.length;
+        colorInterpolationProgress += 1 * deltaTime;
+        if (colorInterpolationProgress >= 1) {
+            currentColorIndex = (currentColorIndex + 1) % colorScheme.length;
+            nextColorIndex = (currentColorIndex + 1) % colorScheme.length;
             colorInterpolationProgress = 0;
         }
     }
