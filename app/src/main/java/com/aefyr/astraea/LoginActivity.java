@@ -24,6 +24,10 @@ import com.aefyr.sombra.account.AccountHelper;
 import com.aefyr.sombra.common.ApiError;
 import com.aefyr.sombra.common.SombraCore;
 import com.aefyr.sombra.diary.BoundStudent;
+import com.aefyr.sombra.diary.Diary;
+import com.aefyr.sombra.diary.Period;
+import com.aefyr.sombra.diary.ScheduleDay;
+import com.aefyr.sombra.diary.ScheduleLesson;
 import com.aefyr.sombra.diary.StudentsHelper;
 
 import java.util.ArrayList;
@@ -38,6 +42,8 @@ public class LoginActivity extends AppCompatActivity {
     private TextView stat;
     private AnimatedTextView message;
     private ProgressIndicator progressIndicator;
+
+    private String sId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,24 +106,89 @@ public class LoginActivity extends AppCompatActivity {
                     public void onSuccess(String result) {
                         stat.setText(result);
                         accountManager.setToken(result);
-                        setMessage("Fetching Data (1/2)");
+                        setMessage("Fetching Data (1/4)");
 
                         new AccountHelper(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getProfileInfo(new AccountHelper.ProfileListener() {
                             @Override
                             public void onSuccess(AccountData result) {
                                 accountManager.setAccountData(result);
                                 stat.setText("name: " + accountManager.getNormalName() + "\nmail: " + accountManager.getEmail());
-                                setMessage("Fetching Data (2/2)");
+                                setMessage("Fetching Data (2/4)");
 
                                 new StudentsHelper(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getBoundStudents(new StudentsHelper.StudentsGetListener() {
                                     @Override
                                     public void onSuccess(ArrayList<BoundStudent> result) {
-                                        showProgress(false);
-                                        setMessage("Done!");
                                         StringBuilder names = new StringBuilder();
                                         for (BoundStudent student : result)
                                             names.append(student.name()).append("\n");
                                         stat.setText(names);
+                                        setMessage("Fetching Data (3/4)");
+                                        sId = result.get(0).id();
+
+                                        new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getSchedule(sId, "2017-09-01", "2017-09-07", new Diary.ScheduleListener() {
+                                            @Override
+                                            public void onSuccess(ArrayList<ScheduleDay> result) {
+                                                StringBuilder days = new StringBuilder();
+                                                for(ScheduleDay day: result){
+                                                    days.append(day.rawDate()).append("\n");
+                                                    for(ScheduleLesson lesson: day.lessons()){
+                                                        days.append(lesson.num()).append(". ").append(lesson.name()).append("\n");
+                                                    }
+                                                }
+                                                stat.setText(days.toString());
+                                                setMessage("Fetching Data (4/4)");
+
+                                                new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getMarks(sId, 0, new Diary.MarksListener() {
+                                                    @Override
+                                                    public void onSuccess(ArrayList<Period> result) {
+                                                        StringBuilder periods = new StringBuilder();
+                                                        for(Period p: result){
+                                                            periods.append(p.subjectName()).append("\n");
+                                                        }
+                                                        stat.setText(periods.toString());
+                                                        showProgress(false);
+                                                        setMessage("Done!");
+                                                    }
+
+                                                    @Override
+                                                    public void onNetworkError() {
+                                                        showError(getString(R.string.error_network));
+                                                        showProgress(false);
+                                                    }
+
+                                                    @Override
+                                                    public void onInvalidTokenError() {
+                                                        showError(getString(R.string.error_token));
+                                                        showProgress(false);
+                                                    }
+
+                                                    @Override
+                                                    public void onApiError(ApiError error) {
+                                                        showError(String.format(getString(R.string.error_api), error.getMessage()));
+                                                        showProgress(false);
+                                                    }
+                                                });
+
+                                            }
+
+                                            @Override
+                                            public void onNetworkError() {
+                                                showError(getString(R.string.error_network));
+                                                showProgress(false);
+                                            }
+
+                                            @Override
+                                            public void onInvalidTokenError() {
+                                                showError(getString(R.string.error_token));
+                                                showProgress(false);
+                                            }
+
+                                            @Override
+                                            public void onApiError(ApiError error) {
+                                                showError(String.format(getString(R.string.error_api), error.getMessage()));
+                                                showProgress(false);
+                                            }
+                                        });
                                     }
 
                                     @Override

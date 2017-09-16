@@ -12,24 +12,32 @@ import java.util.Locale;
  */
 
 public class ScheduleDay {
-    private long date;
+    private String rawDate;
+    private long date = 0;
     private ArrayList<ScheduleLesson> lessons;
 
-    ScheduleDay(String rawDate, ArrayList<ScheduleLesson> lessons) throws ApiError {
+    ScheduleDay(String rawDate, ArrayList<ScheduleLesson> lessons){
         parseDate(rawDate);
         this.lessons = lessons;
     }
 
-    private void parseDate(String rawDate) throws ApiError {
+    private void parseDate(String rawDate){
         try {
             date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(rawDate).getTime();
         } catch (ParseException e) {
-            throw new ApiError("Can't parse ScheduleDay date: " + e.getMessage());
+            this.rawDate = rawDate;
         }
     }
 
-    public long date() {
+    public long rawDate() {
         return date;
+    }
+
+    public String getFormattedDate(SimpleDateFormat simpleDateFormat){
+        if(date == 0)
+            return rawDate;
+        else
+            return simpleDateFormat.format(date);
     }
 
     public ArrayList<ScheduleLesson> lessons() {
