@@ -62,7 +62,7 @@ public class ScheduleLesson {
         return marks != null;
     }
 
-    public ArrayList<BasicMark> getMarks() {
+    public ArrayList<BasicMark> marks() {
         return marks;
     }
 

@@ -25,8 +25,10 @@ public abstract class AsyncParser<T> {
         error = errorMessage;
     }
 
-    protected void parse(ParseTaskParams params){
-        new ParseTask().execute(params);
+    protected AsyncTask parse(ParseTaskParams params){
+        ParseTask parseTask = new ParseTask();
+        parseTask.execute(params);
+        return parseTask;
     }
 
     protected abstract T parseData(ParseTaskParams params);

@@ -25,6 +25,8 @@ import com.aefyr.sombra.common.ApiError;
 import com.aefyr.sombra.common.SombraCore;
 import com.aefyr.sombra.diary.BoundStudent;
 import com.aefyr.sombra.diary.Diary;
+import com.aefyr.sombra.diary.Hometask;
+import com.aefyr.sombra.diary.HomeworkDay;
 import com.aefyr.sombra.diary.Period;
 import com.aefyr.sombra.diary.ScheduleDay;
 import com.aefyr.sombra.diary.ScheduleLesson;
@@ -106,14 +108,14 @@ public class LoginActivity extends AppCompatActivity {
                     public void onSuccess(String result) {
                         stat.setText(result);
                         accountManager.setToken(result);
-                        setMessage("Fetching Data (1/4)");
+                        setMessage("Fetching Data (1/5)");
 
                         new AccountHelper(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getProfileInfo(new AccountHelper.ProfileListener() {
                             @Override
                             public void onSuccess(AccountData result) {
                                 accountManager.setAccountData(result);
                                 stat.setText("name: " + accountManager.getNormalName() + "\nmail: " + accountManager.getEmail());
-                                setMessage("Fetching Data (2/4)");
+                                setMessage("Fetching Data (2/5)");
 
                                 new StudentsHelper(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getBoundStudents(new StudentsHelper.StudentsGetListener() {
                                     @Override
@@ -122,7 +124,7 @@ public class LoginActivity extends AppCompatActivity {
                                         for (BoundStudent student : result)
                                             names.append(student.name()).append("\n");
                                         stat.setText(names);
-                                        setMessage("Fetching Data (3/4)");
+                                        setMessage("Fetching Data (3/5)");
                                         sId = result.get(0).id();
 
                                         new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getSchedule(sId, "2017-09-01", "2017-09-07", new Diary.ScheduleListener() {
@@ -136,7 +138,7 @@ public class LoginActivity extends AppCompatActivity {
                                                     }
                                                 }
                                                 stat.setText(days.toString());
-                                                setMessage("Fetching Data (4/4)");
+                                                setMessage("Fetching Data (4/5)");
 
                                                 new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getMarks(sId, 0, new Diary.MarksListener() {
                                                     @Override
@@ -146,8 +148,41 @@ public class LoginActivity extends AppCompatActivity {
                                                             periods.append(p.subjectName()).append("\n");
                                                         }
                                                         stat.setText(periods.toString());
-                                                        showProgress(false);
-                                                        setMessage("Done!");
+                                                        setMessage("Fetching Data (5/5)");
+
+                                                        new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getHomework(sId, "2017-09-01", "2017-09-07", new Diary.HomeworkListener() {
+                                                            @Override
+                                                            public void onSuccess(ArrayList<HomeworkDay> result) {
+                                                                StringBuilder homework = new StringBuilder();
+                                                                for(HomeworkDay day: result){
+                                                                    homework.append(day.rawDate()).append("\n");
+                                                                    for(Hometask task: day.tasks()){
+                                                                        homework.append(task.subjectName()).append("\n").append(task.task()).append("\n");
+                                                                    }
+                                                                }
+                                                                stat.setText(homework.toString());
+                                                                showProgress(false);
+                                                                setMessage("Done!");
+                                                            }
+
+                                                            @Override
+                                                            public void onNetworkError() {
+                                                                showError(getString(R.string.error_network));
+                                                                showProgress(false);
+                                                            }
+
+                                                            @Override
+                                                            public void onInvalidTokenError() {
+                                                                showError(getString(R.string.error_token));
+                                                                showProgress(false);
+                                                            }
+
+                                                            @Override
+                                                            public void onApiError(ApiError error) {
+                                                                showError(String.format(getString(R.string.error_api), error.getMessage()));
+                                                                showProgress(false);
+                                                            }
+                                                        });
                                                     }
 
                                                     @Override

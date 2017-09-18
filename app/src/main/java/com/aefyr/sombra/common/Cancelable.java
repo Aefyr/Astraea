@@ -16,6 +16,14 @@ public class Cancelable {
         this.request = request;
     }
 
+    public Cancelable(){
+
+    }
+
+    public void addRequest(Request request){
+        this.request = request;
+    }
+
     public void addTask(AsyncTask task) {
         this.task = task;
     }

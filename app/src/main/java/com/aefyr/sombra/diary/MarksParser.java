@@ -1,5 +1,7 @@
 package com.aefyr.sombra.diary;
 
+import android.os.AsyncTask;
+
 import com.aefyr.sombra.common.AsyncParser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -11,7 +13,7 @@ import java.util.ArrayList;
  * Created by Aefyr on 16.09.2017.
  */
 
-public class MarksParser extends AsyncParser<ArrayList<Period>> {
+class MarksParser extends AsyncParser<ArrayList<Period>> {
     @Override
     protected ArrayList<Period> parseData(ParseTaskParams params) {
 
@@ -39,8 +41,8 @@ public class MarksParser extends AsyncParser<ArrayList<Period>> {
         return periods;
     }
 
-    void parse(JsonObject response, AsyncParserListener<ArrayList<Period>> listener){
+    AsyncTask parse(JsonObject response, AsyncParserListener<ArrayList<Period>> listener){
         bindListener(listener);
-        parse(new ParseTaskParams(response));
+        return parse(new ParseTaskParams(response));
     }
 }
