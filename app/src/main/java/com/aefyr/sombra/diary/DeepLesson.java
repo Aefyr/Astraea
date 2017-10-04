@@ -39,7 +39,7 @@ public class DeepLesson extends ScheduleLesson {
     }
 
     public boolean hasTopic(){
-        return topic != null;
+        return topic.length()>0;
     }
 
     public String topic(){
@@ -47,7 +47,7 @@ public class DeepLesson extends ScheduleLesson {
     }
 
     public boolean hasComment(){
-        return comment != null;
+        return comment.length()>0;
     }
 
     public String comment(){
@@ -85,5 +85,10 @@ public class DeepLesson extends ScheduleLesson {
     @Override
     public ArrayList<BasicMark> marks() {
         throw new RuntimeException("Deep lesson's marks must be accessed via DeepLesson.deepMarks()");
+    }
+
+    @Override
+    void addMarks(ArrayList<BasicMark> marks) {
+        throw new RuntimeException("You can't add BasicMarks to a DeepLesson, use addDeepMarks, to add DeepMarks instead");
     }
 }

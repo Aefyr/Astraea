@@ -19,10 +19,10 @@ class MarksParser extends AsyncParser<ArrayList<Period>> {
 
         JsonElement result = params.getJsonObject().get("result");
         if(!result.isJsonArray()||result.getAsJsonArray().size()==0)
-            return new ArrayList<Period>(0);
+            return new ArrayList<>(0);
 
         JsonArray jPeriods = result.getAsJsonArray();
-        ArrayList<Period> periods = new ArrayList<>();
+        ArrayList<Period> periods = new ArrayList<>(jPeriods.size());
 
         for(JsonElement jPeriodEl: jPeriods){
             JsonObject jPeriod = jPeriodEl.getAsJsonObject();

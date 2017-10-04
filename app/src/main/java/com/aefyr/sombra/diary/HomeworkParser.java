@@ -18,18 +18,20 @@ class HomeworkParser extends AsyncParser<ArrayList<HomeworkDay>> {
     protected ArrayList<HomeworkDay> parseData(ParseTaskParams params) {
         JsonElement result = params.getJsonObject().get("result");
         if(!result.isJsonArray()||result.getAsJsonArray().size()==0)
-            return new ArrayList<HomeworkDay>(0);
+            return new ArrayList<>(0);
 
 
         JsonArray jHomeworkDays = result.getAsJsonArray();
 
-        ArrayList<HomeworkDay> days = new ArrayList<>(7);
+        ArrayList<HomeworkDay> days = new ArrayList<>(jHomeworkDays.size());
 
         for(JsonElement jDayEl: jHomeworkDays) {
             JsonObject jDay = jDayEl.getAsJsonObject();
 
-            ArrayList<Hometask> tasks = new ArrayList<>(7);
-            for(JsonElement jTaskEl: jDay.get("tasks").getAsJsonArray()){
+            JsonArray jTasks = jDay.getAsJsonArray("tasks");
+            ArrayList<Hometask> tasks = new ArrayList<>(jTasks.size());
+
+            for(JsonElement jTaskEl: jTasks){
                 JsonObject jTask = jTaskEl.getAsJsonObject();
 
                 tasks.add(new Hometask(jTask.get("subject_name").getAsString(), jTask.get("homework").getAsString(), jTask.get("hw_file").getAsBoolean()));

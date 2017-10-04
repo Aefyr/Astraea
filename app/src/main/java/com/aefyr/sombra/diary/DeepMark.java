@@ -12,10 +12,13 @@ public class DeepMark extends BasicMark{
     private String comment;
 
 
-    DeepMark(int weight, int valueRaw, int value5, int value100, String type, boolean exam) {
+    DeepMark(int weight, int valueRaw, int value5, int value100, String type, boolean exam, String comment) {
         super(weight, valueRaw, value5, value100);
         this.type = type;
         this.exam = exam;
+
+        if(comment.length()>0)
+            this.comment = comment;
     }
 
     void addComment(String comment){

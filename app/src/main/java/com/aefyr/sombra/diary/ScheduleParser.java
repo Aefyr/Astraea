@@ -19,19 +19,20 @@ class ScheduleParser extends AsyncParser<ArrayList<ScheduleDay>> {
 
         JsonElement result = params.getJsonObject().get("result");
         if(!result.isJsonArray()||result.getAsJsonArray().size()==0)
-            return new ArrayList<ScheduleDay>(0);
+            return new ArrayList<>(0);
 
 
         JsonArray schedule = result.getAsJsonArray();
 
-        ArrayList<ScheduleDay> days = new ArrayList<>(7);
+        ArrayList<ScheduleDay> days = new ArrayList<>(schedule.size());
 
         for(JsonElement jDayEl: schedule){
             JsonObject jDay = jDayEl.getAsJsonObject();
 
-            ArrayList<ScheduleLesson> lessons = new ArrayList<>(7);
+            JsonArray jLessons = jDay.getAsJsonArray("lessons");
+            ArrayList<ScheduleLesson> lessons = new ArrayList<>(jLessons.size());
 
-            for(JsonElement jLessonEl: jDay.get("lessons").getAsJsonArray()){
+            for(JsonElement jLessonEl: jLessons){
                 JsonObject jLesson = jLessonEl.getAsJsonObject();
 
                 ScheduleLesson lesson = new ScheduleLesson(jLesson.get("lesson_id").getAsInt(), jLesson.get("subject_counter").getAsInt(), jLesson.get("subject_name").getAsString());
@@ -40,9 +41,9 @@ class ScheduleParser extends AsyncParser<ArrayList<ScheduleDay>> {
                 lesson.skip = jLesson.get("skip").getAsBoolean();
                 lesson.setTeacher(new Teacher(jLesson.get("teacher_id").getAsInt(), jLesson.get("teacher_fio").getAsString()));
 
-                JsonArray jMarks = jLesson.get("marks").getAsJsonArray();
+                JsonArray jMarks = jLesson.getAsJsonArray("marks");
                 if(jMarks.size()>0){
-                    ArrayList<BasicMark> marks = new ArrayList<>(4);
+                    ArrayList<BasicMark> marks = new ArrayList<>(jMarks.size());
                     for(JsonElement jMarkEl: jMarks){
                         JsonObject jMark = jMarkEl.getAsJsonObject();
                         marks.add(new BasicMark(jMark.get("weight").getAsInt(), jMark.get("value").getAsInt(), jMark.get("mark_5").getAsInt(), jMark.get("mark_100").getAsInt()));

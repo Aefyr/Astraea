@@ -14,7 +14,7 @@ public class JsonHelper {
             if (errorCode == 401)
                 listener.onInvalidTokenError();
             else
-                listener.onApiError(new ApiError(response.get("errorMessage") != null ? response.get("errorMessage").getAsString() : "Сервер не передал данных"));
+                listener.onApiError(new ApiError(response.get("errorMessage") != null ? response.get("errorMessage").getAsString() : "Неизвестная ошибка"));
             return false;
         } else
             return true;
