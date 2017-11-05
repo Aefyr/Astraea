@@ -36,6 +36,8 @@ public class Diary {
 
     private static final String SKIPS_URL = Constants.EMP_URL + "/v0.3/diary/getSkips?" + Constants.EMP_API_KEY_PARAM;
 
+    private static final String ATTESTATION_MARKS_BY_SUBJECT_URL =  Constants.EMP_URL + "/v0.3/diary/getAttestationMarksBySubject?" + Constants.EMP_API_KEY_PARAM;
+
     public Diary(SombraCore core){
         this.core = core;
         scheduleParser = new ScheduleParser();
@@ -254,4 +256,55 @@ public class Diary {
     }
 
     //TODO Next up: Deep periods info (getAttestationMarksBySubject and getCurrentMarksBySubject). Objects these methods return are sketchy, so be careful
+    public interface AttestationMarksListener extends BaseCallback<ArrayList<AttestationPeriod>>{}
+    public Cancelable getAttestationMarksBySubject(String studentId, int subjectId, final AttestationMarksListener listener){
+        JsonObject data = core.getBaseData();
+        data.addProperty("child_alias", studentId);
+        data.addProperty("subject_id", subjectId);
+
+        GsonRequest request = new GsonRequest(ATTESTATION_MARKS_BY_SUBJECT_URL, data, new Response.Listener<JsonObject>() {
+            @Override
+            public void onResponse(JsonObject response) {
+                if(!JsonHelper.checkResponse(response, listener))
+                    return;
+
+                JsonElement result = response.get("result");
+                if(!result.isJsonArray()||result.getAsJsonArray().size()==0){
+                    listener.onSuccess(new ArrayList<AttestationPeriod>(0));
+                    return;
+                }
+
+                JsonArray jPeriods = result.getAsJsonArray();
+                ArrayList<AttestationPeriod> periods = new ArrayList<>(jPeriods.size());
+                for(JsonElement jPeriodEl: jPeriods){
+                    JsonObject jPeriod = jPeriodEl.getAsJsonObject();
+                    float averageMark = 0;
+                    try {
+                        averageMark = jPeriod.get("average_mark").getAsFloat();
+                    }catch (ClassCastException ignored){
+
+                    }
+                    float resultMark = 0;
+                    try {
+                        resultMark = jPeriod.get("result_mark").getAsFloat();
+                    }catch (ClassCastException ignored){
+
+                    }
+                    periods.add(new AttestationPeriod(jPeriod.get("period_id").getAsString(), jPeriod.get("period_name").getAsString(), jPeriod.get("periods_from_date").getAsString(), jPeriod.get("periods_to_date").getAsString(), jPeriod.get("period_index").getAsString(), jPeriod.get("result_mark_desc").getAsString(), resultMark, jPeriod.get("average_mark_desc").getAsString(), averageMark));
+                }
+
+                listener.onSuccess(periods);
+
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                listener.onNetworkError();
+            }
+        });
+
+        core.getQueue().add(request);
+        return new Cancelable(request);
+    }
 }
