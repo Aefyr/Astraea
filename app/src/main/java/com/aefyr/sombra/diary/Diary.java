@@ -36,13 +36,17 @@ public class Diary {
 
     private static final String SKIPS_URL = Constants.EMP_URL + "/v0.3/diary/getSkips?" + Constants.EMP_API_KEY_PARAM;
 
-    private static final String ATTESTATION_MARKS_BY_SUBJECT_URL =  Constants.EMP_URL + "/v0.3/diary/getAttestationMarksBySubject?" + Constants.EMP_API_KEY_PARAM;
+    private static final String ATTESTATION_PERIODS_BY_SUBJECT_URL =  Constants.EMP_URL + "/v0.3/diary/getAttestationMarksBySubject?" + Constants.EMP_API_KEY_PARAM;
+
+    private static final String MARKS_BY_PERIOD_URL =  Constants.EMP_URL + "/v0.3/diary/getCurrentMarksBySubject?" + Constants.EMP_API_KEY_PARAM;
+    private PeriodMarksParser periodMarksParser;
 
     public Diary(SombraCore core){
         this.core = core;
         scheduleParser = new ScheduleParser();
         marksParser = new MarksParser();
         homeworkParser = new HomeworkParser();
+        periodMarksParser = new PeriodMarksParser();
     }
 
     public interface ScheduleListener extends BaseCallback<ArrayList<ScheduleDay>>{}
@@ -162,6 +166,7 @@ public class Diary {
         return cancelable;
     }
 
+    //Gets deep info about lesson
     public interface DeepLessonListener extends BaseCallback<DeepLesson>{}
     public Cancelable getDeepLesson(String studentId, final int lessonId, final DeepLessonListener listener){
         JsonObject data = core.getBaseData();
@@ -188,7 +193,7 @@ public class Diary {
                     ArrayList<DeepMark> marks = new ArrayList<>(jMarks.size());
                     for (JsonElement jMarkEl : jMarks) {
                         JsonObject jMark = jMarkEl.getAsJsonObject();
-                        marks.add(new DeepMark(jMark.get("weight").getAsInt(), jMark.get("value").getAsInt(), jMark.get("mark_5").getAsInt(), jMark.get("mark_100").getAsInt(), jMark.get("type").getAsString(), jMark.get("exam").getAsBoolean(), jMark.get("comment").getAsString()));
+                        marks.add(new DeepMark(jMark.get("weight").getAsInt(), jMark.get("value").getAsInt(), jMark.get("mark_5").getAsInt(), jMark.get("mark_100").getAsInt(), jMark.get("type").getAsString(), jMark.get("exam").getAsBoolean(), jMark.get("comment").getAsString(), null, null));
                     }
                     lesson.addDeepMarks(marks);
                 }
@@ -216,6 +221,7 @@ public class Diary {
         return new Cancelable(request);
     }
 
+    //Gets skips
     public interface SkipsListener extends BaseCallback<ArrayList<DayWithSkips>>{}
     public Cancelable getSkips(String studentId, String fromDate, String toDate, final SkipsListener listener){
         JsonObject data = core.getBaseData();
@@ -255,14 +261,13 @@ public class Diary {
         return new Cancelable(request);
     }
 
-    //TODO Next up: Deep periods info (getAttestationMarksBySubject and getCurrentMarksBySubject). Objects these methods return are sketchy, so be careful
     public interface AttestationMarksListener extends BaseCallback<ArrayList<AttestationPeriod>>{}
-    public Cancelable getAttestationMarksBySubject(String studentId, int subjectId, final AttestationMarksListener listener){
+    public Cancelable getAttestationPeriodsBySubject(String studentId, int subjectId, final AttestationMarksListener listener){
         JsonObject data = core.getBaseData();
         data.addProperty("child_alias", studentId);
         data.addProperty("subject_id", subjectId);
 
-        GsonRequest request = new GsonRequest(ATTESTATION_MARKS_BY_SUBJECT_URL, data, new Response.Listener<JsonObject>() {
+        GsonRequest request = new GsonRequest(ATTESTATION_PERIODS_BY_SUBJECT_URL, data, new Response.Listener<JsonObject>() {
             @Override
             public void onResponse(JsonObject response) {
                 if(!JsonHelper.checkResponse(response, listener))
@@ -307,4 +312,45 @@ public class Diary {
         core.getQueue().add(request);
         return new Cancelable(request);
     }
+
+    public interface PeriodMarksListener extends BaseCallback<ArrayList<DeepMark>>{}
+    public Cancelable getMarksInPeriod(String studentId, String periodId, int subjectId, final PeriodMarksListener listener){
+        JsonObject data = core.getBaseData();
+        data.addProperty("child_alias", studentId);
+        data.addProperty("period_id", periodId);
+        data.addProperty("subject_id", subjectId);
+
+        final Cancelable cancelable = new Cancelable();
+        GsonRequest request = new GsonRequest(MARKS_BY_PERIOD_URL, data, new Response.Listener<JsonObject>() {
+            @Override
+            public void onResponse(JsonObject response) {
+                if(!JsonHelper.checkResponse(response, listener))
+                    return;
+
+                cancelable.addTask(periodMarksParser.parse(response, new AsyncParser.AsyncParserListener<ArrayList<DeepMark>>() {
+                    @Override
+                    public void onDone(ArrayList<DeepMark> result) {
+                        listener.onSuccess(result);
+                    }
+
+                    @Override
+                    public void onError(ApiError error) {
+                        listener.onApiError(error);
+                    }
+                }));
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                listener.onNetworkError();
+            }
+        });
+
+        cancelable.addRequest(request);
+        core.getQueue().add(request);
+        return cancelable;
+    }
+
+    //TODO Next up: Deep mark info?
 }

@@ -27,6 +27,7 @@ import com.aefyr.sombra.diary.AttestationPeriod;
 import com.aefyr.sombra.diary.BoundStudent;
 import com.aefyr.sombra.diary.DayWithSkips;
 import com.aefyr.sombra.diary.DeepLesson;
+import com.aefyr.sombra.diary.DeepMark;
 import com.aefyr.sombra.diary.Diary;
 import com.aefyr.sombra.diary.Hometask;
 import com.aefyr.sombra.diary.HomeworkDay;
@@ -50,7 +51,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private String sId;
     private int lId;
-    private int pId; //Period
+    private int pSId; //Period subject id
+    private String pId; //Period id
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,14 +115,14 @@ public class LoginActivity extends AppCompatActivity {
                     public void onSuccess(String result) {
                         stat.setText(result);
                         accountManager.setToken(result);
-                        setMessage("Fetching Data (1/8)");
+                        setMessage("Fetching Data (1/9)");
 
                         new AccountHelper(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getProfileInfo(new AccountHelper.ProfileListener() {
                             @Override
                             public void onSuccess(AccountData result) {
                                 accountManager.setAccountData(result);
                                 stat.setText("name: " + accountManager.getNormalName() + "\nmail: " + accountManager.getEmail());
-                                setMessage("Fetching Data (2/8)");
+                                setMessage("Fetching Data (2/9)");
 
                                 new StudentsHelper(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getBoundStudents(new StudentsHelper.StudentsGetListener() {
                                     @Override
@@ -129,7 +131,7 @@ public class LoginActivity extends AppCompatActivity {
                                         for (BoundStudent student : result)
                                             names.append(student.name()).append("\n");
                                         stat.setText(names);
-                                        setMessage("Fetching Data (3/8)");
+                                        setMessage("Fetching Data (3/9)");
                                         sId = result.get(0).id();
 
                                         new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getSchedule(sId, "2017-09-01", "2017-09-07", new Diary.ScheduleListener() {
@@ -144,7 +146,7 @@ public class LoginActivity extends AppCompatActivity {
                                                     }
                                                 }
                                                 stat.setText(days.toString());
-                                                setMessage("Fetching Data (4/8)");
+                                                setMessage("Fetching Data (4/9)");
 
                                                 new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getMarks(sId, 0, new Diary.MarksListener() {
                                                     @Override
@@ -152,10 +154,12 @@ public class LoginActivity extends AppCompatActivity {
                                                         StringBuilder periods = new StringBuilder();
                                                         for(Period p: result){
                                                             periods.append(p.subjectName()).append("\n");
-                                                            pId = p.subjectId();
+                                                            System.out.println("Subject name: "+p.subjectName());
+                                                            pSId = p.subjectId();
+                                                            pId = p.id();
                                                         }
                                                         stat.setText(periods.toString());
-                                                        setMessage("Fetching Data (5/8)");
+                                                        setMessage("Fetching Data (5/9)");
 
                                                         new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getHomework(sId, "2017-09-01", "2017-09-07", new Diary.HomeworkListener() {
                                                             @Override
@@ -168,7 +172,7 @@ public class LoginActivity extends AppCompatActivity {
                                                                     }
                                                                 }
                                                                 stat.setText(homework.toString());
-                                                                setMessage("Fetching Data (6/8)");
+                                                                setMessage("Fetching Data (6/9)");
 
                                                                 new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getDeepLesson(sId, lId, new Diary.DeepLessonListener() {
                                                                     @Override
@@ -176,19 +180,44 @@ public class LoginActivity extends AppCompatActivity {
                                                                         StringBuilder lesson = new StringBuilder();
                                                                         lesson.append(result.name()).append("\ncomment? ").append(result.hasComment()).append("\nmarks? ").append(result.hasMarks()).append("\ndate: ").append(result.rawDate());
                                                                         stat.setText(lesson.toString());
-                                                                        setMessage("Fetching Data (7/8)");
+                                                                        setMessage("Fetching Data (7/9)");
 
                                                                         new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getSkips(sId, "2016-08-01", "2017-10-08", new Diary.SkipsListener() {
                                                                             @Override
                                                                             public void onSuccess(ArrayList<DayWithSkips> result) {
                                                                                 stat.setText("Skips count: "+result.size());
-                                                                                setMessage("Fetching Data (8/8)");
-                                                                                new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getAttestationMarksBySubject(sId, pId, new Diary.AttestationMarksListener() {
+                                                                                setMessage("Fetching Data (8/9)");
+                                                                                new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getAttestationPeriodsBySubject(sId, pSId, new Diary.AttestationMarksListener() {
                                                                                     @Override
                                                                                     public void onSuccess(ArrayList<AttestationPeriod> result) {
                                                                                         stat.setText(result.get(0).averageMarkName()+": "+result.get(0).averageMark());
-                                                                                        showProgress(false);
-                                                                                        setMessage("Done!");
+                                                                                        setMessage("Fetching Data (9/9)");
+                                                                                        new Diary(SombraCore.getInstance(LoginActivity.this, AccountManager.getInstance(LoginActivity.this).getToken())).getMarksInPeriod(sId, pId, pSId, new Diary.PeriodMarksListener() {
+                                                                                            @Override
+                                                                                            public void onSuccess(ArrayList<DeepMark> result) {
+                                                                                                stat.setText(result.get(0).topic());
+                                                                                                showProgress(false);
+                                                                                                setMessage("Done!");
+                                                                                            }
+
+                                                                                            @Override
+                                                                                            public void onNetworkError() {
+                                                                                                showError(getString(R.string.error_network));
+                                                                                                showProgress(false);
+                                                                                            }
+
+                                                                                            @Override
+                                                                                            public void onInvalidTokenError() {
+                                                                                                showError(getString(R.string.error_token));
+                                                                                                showProgress(false);
+                                                                                            }
+
+                                                                                            @Override
+                                                                                            public void onApiError(ApiError error) {
+                                                                                                showError(String.format(getString(R.string.error_api), error.getMessage()));
+                                                                                                showProgress(false);
+                                                                                            }
+                                                                                        });
                                                                                     }
 
                                                                                     @Override

@@ -1,5 +1,7 @@
 package com.aefyr.sombra.common;
 
+import android.util.Log;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
@@ -21,11 +23,13 @@ import java.util.Map;
 public class GsonRequest extends Request<JsonObject> {
     private JsonObject data;
     private Response.Listener<JsonObject> listener;
+    private static final String TAG = "GsonRequest";
 
     public GsonRequest(String url, JsonObject data, Response.Listener<JsonObject> listener, Response.ErrorListener errorListener) {
         super(Method.POST, url, errorListener);
         this.data = data;
         this.listener = listener;
+        Log.d(TAG, "Making request:\nURL: "+url+"\nDATA: "+data.toString());
     }
 
     @Override
